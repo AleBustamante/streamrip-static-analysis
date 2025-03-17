@@ -142,21 +142,11 @@ class DeezerDownloadable(Downloadable):
         self.id = str(info["id"])
 
     async def _download(self, path: str, callback):
-        # with requests.Session().get(self.url, allow_redirects=True) as resp:
         async with self.session.get(self.url, allow_redirects=True) as resp:
             resp.raise_for_status()
             self._size = int(resp.headers.get("Content-Length", 0))
             if self._size < 20000 and not self.url.endswith(".jpg"):
-                try:
-                    info = await resp.json()
-                    try:
-                        # Usually happens with deezloader downloads
-                        raise NonStreamableError(f"{info['error']} - {info['message']}")
-                    except KeyError:
-                        raise NonStreamableError(info)
-
-                except json.JSONDecodeError:
-                    raise NonStreamableError("File not found.")
+                await self._handle_small_file(resp)
 
             if self.is_encrypted.search(self.url) is None:
                 logger.debug(f"Deezer file at {self.url} not encrypted.")
@@ -164,32 +154,45 @@ class DeezerDownloadable(Downloadable):
                     path, self.url, self.session.headers, callback
                 )
             else:
-                blowfish_key = self._generate_blowfish_key(self.id)
-                logger.debug(
-                    "Deezer file (id %s) at %s is encrypted. Decrypting with %s",
-                    self.id,
-                    self.url,
-                    blowfish_key,
-                )
+                await self._handle_encrypted_file(resp, path, callback)
 
-                buf = bytearray()
-                async for data, _ in resp.content.iter_chunks():
-                    buf += data
-                    callback(len(data))
+    async def _handle_small_file(self, resp):
+        try:
+            info = await resp.json()
+            try:
+                raise NonStreamableError(f"{info['error']} - {info['message']}")
+            except KeyError:
+                raise NonStreamableError(info)
+        except json.JSONDecodeError:
+            raise NonStreamableError("File not found.")
 
-                encrypt_chunk_size = 3 * 2048
-                async with aiofiles.open(path, "wb") as audio:
-                    buflen = len(buf)
-                    for i in range(0, buflen, encrypt_chunk_size):
-                        data = buf[i : min(i + encrypt_chunk_size, buflen)]
-                        if len(data) >= 2048:
-                            decrypted_chunk = (
-                                self._decrypt_chunk(blowfish_key, data[:2048])
-                                + data[2048:]
-                            )
-                        else:
-                            decrypted_chunk = data
-                        await audio.write(decrypted_chunk)
+    async def _handle_encrypted_file(self, resp, path, callback):
+        blowfish_key = self._generate_blowfish_key(self.id)
+        logger.debug(
+            "Deezer file (id %s) at %s is encrypted. Decrypting with %s",
+            self.id,
+            self.url,
+            blowfish_key,
+        )
+
+        buf = bytearray()
+        async for data, _ in resp.content.iter_chunks():
+            buf += data
+            callback(len(data))
+
+        encrypt_chunk_size = 3 * 2048
+        async with aiofiles.open(path, "wb") as audio:
+            buflen = len(buf)
+            for i in range(0, buflen, encrypt_chunk_size):
+                data = buf[i : min(i + encrypt_chunk_size, buflen)]
+                decrypted_chunk = self._decrypt_data_chunk(blowfish_key, data)
+                await audio.write(decrypted_chunk)
+
+    @staticmethod
+    def _decrypt_data_chunk(blowfish_key, data):
+        if len(data) >= 2048:
+            return self._decrypt_chunk(blowfish_key, data[:2048]) + data[2048:]
+        return data
 
     @staticmethod
     def _decrypt_chunk(key, data):

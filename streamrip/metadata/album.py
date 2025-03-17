@@ -17,6 +17,7 @@ logger = logging.getLogger("streamrip")
 
 genre_clean = re.compile(r"([^\u2192\/]+)")
 
+UNKNOWN_ALBUM = "Unknown Album";
 
 @dataclass(slots=True)
 class AlbumInfo:
@@ -82,7 +83,7 @@ class AlbumMetadata:
 
     @classmethod
     def from_qobuz(cls, resp: dict) -> AlbumMetadata:
-        album = resp.get("title", "Unknown Album")
+        album = resp.get("title", UNKNOWN_ALBUM)
         tracktotal = resp.get("tracks_count", 1)
         genre = resp.get("genres_list") or resp.get("genre") or []
         genres = list(set(genre_clean.findall("/".join(genre))))
@@ -160,7 +161,7 @@ class AlbumMetadata:
 
     @classmethod
     def from_deezer(cls, resp: dict) -> AlbumMetadata | None:
-        album = resp.get("title", "Unknown Album")
+        album = resp.get("title", UNKNOWN_ALBUM)
         tracktotal = typed(resp.get("track_total", 0) or resp.get("nb_tracks", 0), int)
         disctotal = typed(resp["tracks"][-1]["disk_number"], int)
         genres = [typed(g["name"], str) for g in resp["genres"]["data"]]
@@ -240,7 +241,7 @@ class AlbumMetadata:
             safe_get(track, "publisher_metadata", "album_title"),
             str | None,
         )
-        album_title = album_title or "Unknown album"
+        album_title = album_title or UNKNOWN_ALBUM
         copyright = typed(safe_get(track, "publisher_metadata", "p_line"), str | None)
         tracktotal = 1
         disctotal = 1
@@ -296,7 +297,7 @@ class AlbumMetadata:
             return None
 
         item_id = str(resp["id"])
-        album = typed(resp.get("title", "Unknown Album"), str)
+        album = typed(resp.get("title", UNKNOWN_ALBUM), str)
         tracktotal = typed(resp.get("numberOfTracks", 1), int)
         # genre not returned by API
         date = typed(resp.get("releaseDate"), str)
@@ -375,7 +376,7 @@ class AlbumMetadata:
             return None
 
         item_id = str(resp["id"])
-        album = typed(album_resp.get("title", "Unknown Album"), str)
+        album = typed(album_resp.get("title", UNKNOWN_ALBUM), str)
         tracktotal = 1
         # genre not returned by API
         date = typed(resp.get("streamStartDate"), str | None)
