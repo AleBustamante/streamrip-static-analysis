@@ -18,8 +18,9 @@ import aiofiles
 import aiohttp
 import m3u8
 import requests
-from Cryptodome.Cipher import AES, Blowfish
+from Cryptodome.Cipher import AES
 from Cryptodome.Util import Counter
+import hashlib
 
 from .. import converter
 from ..exceptions import NonStreamableError
@@ -197,11 +198,12 @@ class DeezerDownloadable(Downloadable):
         :param key:
         :param data:
         """
-        return Blowfish.new(
-            key,
-            Blowfish.MODE_CBC,
-            b"\x00\x01\x02\x03\x04\x05\x06\x07",
-        ).decrypt(data)
+
+        aes_key = hashlib.sha256(key).digest()
+        iv = hashlib.md5(key).digest()
+
+        cipher = AES.new(aes_key, AES.MODE_CBC, iv)
+        return cipher.decrypt(data)
 
     @staticmethod
     def _generate_blowfish_key(track_id: str) -> bytes:
