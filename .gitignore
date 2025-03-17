@@ -24,3 +24,4 @@ pyrightconfig.json
 
 
 sonar-project.properties
+.scannerwork/

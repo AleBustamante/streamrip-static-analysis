@@ -34,6 +34,8 @@ QUALITY_MAP = {
     3: "HI_RES",  # MQA
 }
 
+TIDAL_FULL_SCOPE = "r_usr+w_usr+w_sub"
+
 
 class TidalClient(Client):
     """TidalClient."""
@@ -242,7 +244,7 @@ class TidalClient(Client):
     async def _get_login_link(self) -> str:
         data = {
             "client_id": CLIENT_ID,
-            "scope": "r_usr+w_usr+w_sub",
+            "scope": TIDAL_FULL_SCOPE,
         }
         resp = await self._api_post(f"{AUTH_URL}/device_authorization", data)
 
@@ -266,7 +268,7 @@ class TidalClient(Client):
             "client_id": CLIENT_ID,
             "device_code": device_code,
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-            "scope": "r_usr+w_usr+w_sub",
+            "scope": TIDAL_FULL_SCOPE,
         }
         logger.debug("Checking with %s", data)
         resp = await self._api_post(f"{AUTH_URL}/token", data, AUTH)
@@ -295,7 +297,7 @@ class TidalClient(Client):
             "client_id": CLIENT_ID,
             "refresh_token": self.refresh_token,
             "grant_type": "refresh_token",
-            "scope": "r_usr+w_usr+w_sub",
+            "scope": TIDAL_FULL_SCOPE,
         }
         resp = await self._api_post(f"{AUTH_URL}/token", data, AUTH)
 
@@ -314,7 +316,7 @@ class TidalClient(Client):
 
         data = {
             "client_id": CLIENT_ID,
-            "scope": "r_usr+w_usr+w_sub",
+            "scope": TIDAL_FULL_SCOPE,
         }
         resp = await self._api_post(f"{AUTH_URL}/device_authorization", data)
 
