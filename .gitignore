@@ -21,3 +21,6 @@ StreamripDownloads
 /.mypy_cache
 .DS_Store
 pyrightconfig.json
+
+
+sonar-project.properties
