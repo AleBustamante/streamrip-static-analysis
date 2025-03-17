@@ -11,5 +11,5 @@ sonar.python.version=3.x
 sonar.sourceEncoding=UTF-8
 
 sonar.host.url=http://localhost:9000
-sonar.login=sqa_22c1fa01ce247570d76821eb583680846b9f5083
+sonar.login=(token)
 
