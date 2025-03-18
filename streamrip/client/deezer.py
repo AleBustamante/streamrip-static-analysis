@@ -137,11 +137,11 @@ class DeezerClient(Client):
 
     async def get_downloadable(
         self,
-        item_id: str,
+        item_id: str = "",
         quality: int = 2,
         is_retry: bool = False,
     ) -> DeezerDownloadable:
-        if item_id is None:
+        if not item_id:
             raise NonStreamableError(
                 "No item id provided. This can happen when searching for fallback songs.",
             )
