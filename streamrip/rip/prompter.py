@@ -194,9 +194,11 @@ class SoundcloudPrompter(CredentialPrompter):
         return True
 
     async def prompt_and_login(self):
+        # Soundcloud does not require user credentials for login in this context.
         pass
 
     def save(self):
+        # No credentials to save for Soundcloud in this context.
         pass
 
     def type_check_client(self, client) -> SoundcloudClient:
