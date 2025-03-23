@@ -123,12 +123,12 @@ class DeezerClient(Client):
                 else:
                     search_function = self.client.api.get_editorial_releases
             except AttributeError:
-                raise Exception(f'Invalid editorical selection "{query}"')
+                raise ValueError(f'Invalid editorial selection "{query}"') from None
         else:
             try:
                 search_function = getattr(self.client.api, f"search_{media_type}")
             except AttributeError:
-                raise Exception(f"Invalid media type {media_type}")
+                raise ValueError(f"Unsupported media type: {media_type}") from None
 
         response = search_function(query, limit=limit)  # type: ignore
         if response["total"] > 0:
