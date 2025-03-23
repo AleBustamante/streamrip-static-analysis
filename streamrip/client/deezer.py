@@ -64,7 +64,7 @@ class DeezerClient(Client):
         elif media_type == "artist":
             return await self.get_artist(item_id)
         else:
-            raise Exception(f"Media type {media_type} not available on deezer")
+            raise ValueError(f"Unsupported Deezer media type: {media_type}")
 
     async def get_track(self, item_id: str) -> dict:
         try:
@@ -123,12 +123,12 @@ class DeezerClient(Client):
                 else:
                     search_function = self.client.api.get_editorial_releases
             except AttributeError:
-                raise Exception(f'Invalid editorical selection "{query}"')
+                raise ValueError(f'Invalid editorial selection "{query}"') from None
         else:
             try:
                 search_function = getattr(self.client.api, f"search_{media_type}")
             except AttributeError:
-                raise Exception(f"Invalid media type {media_type}")
+                raise ValueError(f"Unsupported media type: {media_type}") from None
 
         response = search_function(query, limit=limit)  # type: ignore
         if response["total"] > 0:
@@ -137,11 +137,11 @@ class DeezerClient(Client):
 
     async def get_downloadable(
         self,
-        item_id: str,
+        item_id: str = "",
         quality: int = 2,
         is_retry: bool = False,
     ) -> DeezerDownloadable:
-        if item_id is None:
+        if not item_id:
             raise NonStreamableError(
                 "No item id provided. This can happen when searching for fallback songs.",
             )

@@ -99,63 +99,71 @@ class Converter:
         else:
             raise ConversionError(f"FFmpeg output:\n{out, err}")
 
-    def _gen_command(self):
-        command = [
-            "ffmpeg",
-            "-i",
-            self.filename,
-        ]
+    def _gen_command(self) -> list[str]:
+        command = ["ffmpeg", "-i", self.filename]
+        
+        self._add_basic_arguments(command)
+        self._handle_logging_level(command)
+        self._handle_lossless_config(command)
+        self._add_final_arguments(command)
+        
+        logger.debug(command)
+        return command
 
-        if logger.getEffectiveLevel() != logging.DEBUG:
-            command.extend(("-loglevel", "panic"))
-
+    def _add_basic_arguments(self, command: list[str]) -> None:
         command.extend(("-c:a", self.codec_lib))
-
         if self.show_progress:
             command.append("-stats")
-
         if self.copy_art:
             command.extend(["-c:v", "copy"])
-
         if self.ffmpeg_arg:
             command.extend(self.ffmpeg_arg.split())
 
-        if self.lossless:
-            aformat = []
+    def _handle_logging_level(self, command: list[str]) -> None:
+        if logger.getEffectiveLevel() != logging.DEBUG:
+            command.extend(("-loglevel", "panic"))
 
-            if isinstance(self.sampling_rate, int):
-                sample_rates = "|".join(
-                    str(rate) for rate in SAMPLING_RATES if rate <= self.sampling_rate
-                )
-                aformat.append(f"sample_rates={sample_rates}")
-            elif self.sampling_rate is not None:
-                raise TypeError(
-                    f"Sampling rate must be int, not {type(self.sampling_rate)}"
-                )
+    def _handle_lossless_config(self, command: list[str]) -> None:
+        if not self.lossless:
+            return
+        
+        aformat = []
+        self._add_sampling_rate_config(aformat)
+        self._add_bit_depth_config(aformat)
+        
+        if aformat:
+            command.extend(["-af", f"aformat={':'.join(aformat)}"])
 
-            if isinstance(self.bit_depth, int):
-                bit_depths = ["s16p", "s16"]
+    def _add_sampling_rate_config(self, aformat: list[str]) -> None:
+        if self.sampling_rate is None:
+            return
+        
+        if not isinstance(self.sampling_rate, int):
+            raise TypeError(f"Sampling rate must be int, not {type(self.sampling_rate)}")
+        
+        sample_rates = "|".join(
+            str(rate) for rate in SAMPLING_RATES if rate <= self.sampling_rate
+        )
+        aformat.append(f"sample_rates={sample_rates}")
 
-                if self.bit_depth in (24, 32):
-                    bit_depths.extend(["s32p", "s32"])
-                elif self.bit_depth != 16:
-                    raise ValueError("Bit depth must be 16, 24, or 32")
+    def _add_bit_depth_config(self, aformat: list[str]) -> None:
+        if self.bit_depth is None:
+            return
+        
+        if not isinstance(self.bit_depth, int):
+            raise TypeError(f"Bit depth must be int, not {type(self.bit_depth)}")
+        
+        if self.bit_depth not in (16, 24, 32):
+            raise ValueError("Bit depth must be 16, 24, or 32")
+        
+        bit_depths = ["s16p", "s16"]
+        if self.bit_depth in (24, 32):
+            bit_depths.extend(["s32p", "s32"])
+        
+        aformat.append(f"sample_fmts={'|'.join(bit_depths)}")
 
-                sample_fmts = "|".join(bit_depths)
-                aformat.append(f"sample_fmts={sample_fmts}")
-            elif self.bit_depth is not None:
-                raise TypeError(f"Bit depth must be int, not {type(self.bit_depth)}")
-
-            if aformat:
-                aformat_params = ":".join(aformat)
-                command.extend(["-af", f"aformat={aformat_params}"])
-
-        # automatically overwrite
+    def _add_final_arguments(self, command: list[str]) -> None:
         command.extend(["-y", self.tempfile])
-
-        logger.debug(command)
-
-        return command
 
     def _is_command_valid(self):
         # TODO: add error handling for lossy codecs
