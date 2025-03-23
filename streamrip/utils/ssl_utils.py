@@ -25,12 +25,15 @@ def create_ssl_context(verify=True):
         An SSL context object with the specified verification settings
     """
     if not verify:
-        # Disable verification entirely when requested
-        logger.warning("SSL certificate verification disabled (less secure)")
+        # Disabled the posibility to work without SSL
+        logger.warning("SSL verification is not allowed to be disabled")
+        
+        """
         ctx = ssl.create_default_context()
         ctx.check_hostname = False
         ctx.verify_mode = ssl.CERT_NONE
         return ctx
+        """
 
     # Use certifi for certificate verification if available
     if HAS_CERTIFI:
@@ -49,7 +52,8 @@ def get_aiohttp_connector_kwargs(verify_ssl=True):
         Dictionary of kwargs to pass to aiohttp.TCPConnector
     """
     if not verify_ssl:
-        return {"verify_ssl": False}
+        logger.warning("SSL verification is not allowed to be disabled")
+        #return {"verify_ssl": False}
 
     if HAS_CERTIFI:
         ssl_context = create_ssl_context(verify=True)
@@ -62,10 +66,13 @@ def print_ssl_error_help():
     """Print helpful error message when SSL verification fails."""
     print("\nError: Cannot verify SSL certificate.")
     print("Options:")
+    """
     print("  1. Run again with the --no-ssl-verify flag (less secure)")
     print(
         '     Example: rip --no-ssl-verify url "https://tidal.com/browse/playlist/..."'
     )
+    """
+    print("  1. Make sure your SSL certificate is valid")
     print()
     print("  2. Install certifi for better certificate handling:")
     print("     pip install certifi")
