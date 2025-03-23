@@ -64,7 +64,7 @@ class DeezerClient(Client):
         elif media_type == "artist":
             return await self.get_artist(item_id)
         else:
-            raise Exception(f"Media type {media_type} not available on deezer")
+            raise ValueError(f"Unsupported Deezer media type: {media_type}")
 
     async def get_track(self, item_id: str) -> dict:
         try:
