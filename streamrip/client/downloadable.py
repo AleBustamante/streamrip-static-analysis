@@ -321,7 +321,7 @@ class SoundcloudDownloadable(Downloadable):
         elif self.file_type == "original":
             self.extension = "flac"
         else:
-            raise Exception(f"Invalid file type: {self.file_type}")
+            raise ValueError(f"Unsupported SoundCloud file type: {self.file_type}")
         self.url = info["url"]
 
     async def _download(self, path, callback):
