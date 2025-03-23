@@ -236,7 +236,7 @@ class PendingLastfmPlaylist(Pending):
         else:
 
             def callback():
-                pass
+                """No-op callback since progress bars are disabled. No UI to update."""
 
             for title, artist in titles_artists:
                 requests.append(self._make_query(f"{title} {artist}", s, callback))
