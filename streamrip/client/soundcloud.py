@@ -74,7 +74,7 @@ class SoundcloudClient(Client):
         elif media_type == "playlist":
             return await self._get_playlist(item_id)
         else:
-            raise Exception(f"{media_type} not supported")
+            raise ValueError(f"{media_type} not supported")
 
     async def search(
         self,
@@ -194,7 +194,7 @@ class SoundcloudClient(Client):
                 continue
             this_track = track_map.get(track["id"])
             if this_track is None:
-                raise Exception(f"Requested {track['id']} but got no response")
+                raise ValueError(f"Track ID {track['id']} not found in API response")
             original_resp["tracks"][i] = this_track
 
         # Overwrite all ids in playlist
@@ -271,7 +271,7 @@ class SoundcloudClient(Client):
         )
 
         if client_id_url_match is None:
-            raise Exception("Could not find client ID in %s" % STOCK_URL)
+            raise ValueError("Could not find client ID in %s" % STOCK_URL)
 
         client_id_url = client_id_url_match.group(1)
 
@@ -280,7 +280,7 @@ class SoundcloudClient(Client):
             page_text,
         )
         if app_version_match is None:
-            raise Exception("Could not find app version in %s" % client_id_url_match)
+            raise ValueError("Could not find app version in %s" % client_id_url_match)
         app_version = app_version_match.group(1)
 
         async with self.session.get(client_id_url) as resp:

@@ -77,7 +77,7 @@ class Main:
         """
         parsed = parse_url(url)
         if parsed is None:
-            raise Exception(f"Unable to parse url {url}")
+            raise ValueError(f"Unable to parse url {url}")
 
         client = await self.get_logged_in_client(parsed.source)
         self.pending.append(
@@ -107,7 +107,7 @@ class Main:
         elif media_type == "artist":
             item = PendingArtist(id, client, self.config, self.database)
         else:
-            raise Exception(media_type)
+            raise ValueError(f"Invalid media type: {media_type}")
 
         self.pending.append(item)
 
@@ -135,7 +135,7 @@ class Main:
         """Return a functioning client instance for `source`."""
         client = self.clients.get(source)
         if client is None:
-            raise Exception(
+            raise ValueError(
                 f"No client named {source} available. Only have {self.clients.keys()}",
             )
         if not client.logged_in:

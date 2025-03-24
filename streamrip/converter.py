@@ -49,7 +49,7 @@ class Converter:
         :type remove_source: bool
         """
         if shutil.which("ffmpeg") is None:
-            raise Exception(
+            raise FileNotFoundError(
                 "Could not find FFMPEG executable. Install it to convert audio files.",
             )
 
