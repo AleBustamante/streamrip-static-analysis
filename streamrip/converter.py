@@ -173,7 +173,6 @@ class Converter:
                 "the extra argument will be ignored",
             )
             self.ffmpeg_arg = self.default_ffmpeg_arg
-            return
 
 
 class FLAC(Converter):
