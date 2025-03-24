@@ -46,7 +46,7 @@ class ArtistSummary(Summary):
 
     @classmethod
     def from_item(cls, item: dict):
-        id = str(item["id"])
+        item_id = str(item["id"])
         name = (
             item.get("name")
             or item.get("performer", {}).get("name")
@@ -59,7 +59,7 @@ class ArtistSummary(Summary):
             or "Unknown"
         )
         num_albums = item.get("albums_count") or "Unknown"
-        return cls(id, name, num_albums)
+        return cls(item_id, name, num_albums)
 
 
 @dataclass(slots=True)
@@ -81,7 +81,7 @@ class TrackSummary(Summary):
 
     @classmethod
     def from_item(cls, item: dict):
-        id = str(item["id"])
+        item_id = str(item["id"])
         name = item.get("title") or item.get("name") or "Unknown"
         artist = (
             item.get("performer", {}).get("name")
@@ -105,7 +105,7 @@ class TrackSummary(Summary):
             or item.get("year")
             or "Unknown"
         )
-        return cls(id, name.strip(), artist, date_released)  # type: ignore
+        return cls(item_id, name.strip(), artist, date_released)  # type: ignore
 
 
 @dataclass(slots=True)
@@ -127,7 +127,7 @@ class AlbumSummary(Summary):
 
     @classmethod
     def from_item(cls, item: dict):
-        id = str(item["id"])
+        item_id = str(item["id"])
         title = (item.get("title") or "").strip()
         version = (item.get("version") or "").strip()
         name = title + (" (" + version + ")" if version else "")
@@ -158,7 +158,7 @@ class AlbumSummary(Summary):
             or item.get("year")
             or "Unknown"
         )
-        return cls(id, name, artist, str(num_tracks), date_released)
+        return cls(item_id, name, artist, str(num_tracks), date_released)
 
 
 @dataclass(slots=True)
@@ -177,9 +177,9 @@ class LabelSummary(Summary):
 
     @classmethod
     def from_item(cls, item: dict):
-        id = str(item["id"])
+        item_id = str(item["id"])
         name = item["name"]
-        return cls(id, name)
+        return cls(item_id, name)
 
 
 @dataclass(slots=True)
@@ -207,7 +207,7 @@ class PlaylistSummary(Summary):
 
     @classmethod
     def from_item(cls, item: dict):
-        id = item.get("id") or item.get("uuid") or "Unknown"
+        item_id = item.get("id") or item.get("uuid") or "Unknown"
         name = item.get("name") or item.get("title") or "Unknown"
         creator = (
             (item.get("publisher_metadata") and item["publisher_metadata"]["artist"])
@@ -224,7 +224,7 @@ class PlaylistSummary(Summary):
             or -1
         )
         description = item.get("description") or "No description"
-        return cls(id, name, creator, num_tracks, description)
+        return cls(item_id, name, creator, num_tracks, description)
 
 
 @dataclass(slots=True)

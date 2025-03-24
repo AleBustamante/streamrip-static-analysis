@@ -242,7 +242,7 @@ class AlbumMetadata:
             str | None,
         )
         album_title = album_title or UNKNOWN_ALBUM
-        copyright = typed(safe_get(track, "publisher_metadata", "p_line"), str | None)
+        copyright_info = typed(safe_get(track, "publisher_metadata", "p_line"), str | None)
         tracktotal = 1
         disctotal = 1
         quality = 0

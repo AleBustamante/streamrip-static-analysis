@@ -355,7 +355,7 @@ class TidalClient(Client):
         async with self.rate_limiter:
             async with self.session.get(f"{base}/{path}", params=params) as resp:
                 if resp.status == 404:
-                    logger.warning("TIDAL: track not found", resp)
+                    logger.warning("TIDAL: track not found. Response: %s", resp)
                     raise NonStreamableError("TIDAL: Track not found")
                 resp.raise_for_status()
                 return await resp.json()
