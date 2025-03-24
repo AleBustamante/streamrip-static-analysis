@@ -233,39 +233,42 @@ class SearchResults:
 
     @classmethod
     def from_pages(cls, source: str, media_type: str, pages: list[dict]):
-        if media_type == "track":
-            summary_type = TrackSummary
-        elif media_type == "album":
-            summary_type = AlbumSummary
-        elif media_type == "label":
-            summary_type = LabelSummary
-        elif media_type == "artist":
-            summary_type = ArtistSummary
-        elif media_type == "playlist":
-            summary_type = PlaylistSummary
-        else:
-            raise ValueError(f"invalid media type {media_type}")
+        summary_type = cls._get_summary_type(media_type)
+        extractor = cls._get_extractor(source, media_type)
 
         results = []
         for page in pages:
-            if source == "soundcloud":
-                items = page["collection"]
-                for item in items:
-                    results.append(summary_type.from_item(item))
-            elif source == "qobuz":
-                key = media_type + "s"
-                for item in page[key]["items"]:
-                    results.append(summary_type.from_item(item))
-            elif source == "deezer":
-                for item in page["data"]:
-                    results.append(summary_type.from_item(item))
-            elif source == "tidal":
-                for item in page["items"]:
-                    results.append(summary_type.from_item(item))
-            else:
-                raise NotImplementedError
+            items = extractor(page)
+            results.extend(summary_type.from_item(item) for item in items)
 
         return cls(results)
+
+    @staticmethod
+    def _get_summary_type(media_type: str):
+        summary_map = {
+            "track": TrackSummary,
+            "album": AlbumSummary,
+            "label": LabelSummary,
+            "artist": ArtistSummary,
+            "playlist": PlaylistSummary,
+        }
+        if media_type not in summary_map:
+            raise ValueError(f"invalid media type {media_type}")
+        return summary_map[media_type]
+
+    @staticmethod
+    def _get_extractor(source: str, media_type: str):
+        if source == "soundcloud":
+            return lambda page: page["collection"]
+        elif source == "qobuz":
+            return lambda page: page[media_type + "s"]["items"]
+        elif source == "deezer":
+            return lambda page: page["data"]
+        elif source == "tidal":
+            return lambda page: page["items"]
+        else:
+            raise NotImplementedError(f"Extractor not implemented for source: {source}")
+
 
     def summaries(self) -> list[str]:
         return [f"{i+1}. {r.summarize()}" for i, r in enumerate(self.results)]
