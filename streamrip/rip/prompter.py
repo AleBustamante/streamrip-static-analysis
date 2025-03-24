@@ -115,7 +115,6 @@ class TidalPrompter(CredentialPrompter):
             if status == 2:
                 # pending
                 await asyncio.sleep(4)
-                continue
             elif status == 0:
                 # successful
                 break
