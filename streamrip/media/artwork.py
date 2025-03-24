@@ -31,89 +31,72 @@ async def download_artwork(
     config: ArtworkConfig,
     for_playlist: bool,
 ) -> tuple[str | None, str | None]:
-    """Download artwork and update passed Covers object with filepaths.
-
-    If paths for the selected sizes already exist in `covers`, nothing will
-    be downloaded.
-
-    If `for_playlist` is set, it will not download hires cover art regardless
-    of the config setting.
-
-    Embedded artworks are put in a temporary directory under `folder` called
-    "__embed" that can be deleted once a playlist or album is done downloading.
-
-    Hi-res (saved) artworks are kept in `folder` as "cover.jpg".
-
-    Args:
-    ----
-        session (aiohttp.ClientSession):
-        folder (str):
-        covers (Covers):
-        config (ArtworkConfig):
-        for_playlist (bool): Set to disable saved hires covers.
-
-    Returns:
-    -------
-        (path to embedded artwork, path to hires artwork)
-    """
-    save_artwork, embed = config.save_artwork, config.embed
-    if for_playlist:
-        save_artwork = False
+    """Download artwork and update passed Covers object with filepaths."""
+    save_artwork = config.save_artwork and not for_playlist
+    embed = config.embed
 
     if not (save_artwork or embed) or covers.empty():
-        # No need to download anything
         return None, None
 
-    downloadables = []
+    download_tasks = []
+    saved_cover_path = _prepare_saved_cover(session, folder, covers, save_artwork, download_tasks)
+    embed_cover_path = _prepare_embed_cover(session, folder, covers, config, embed, download_tasks)
 
+    if download_tasks:
+        if not await _perform_downloads(download_tasks):
+            return None, None
+
+    _update_covers(covers, config, save_artwork, saved_cover_path, embed, embed_cover_path)
+
+    return embed_cover_path, saved_cover_path
+
+
+def _prepare_saved_cover(session, folder, covers, save_artwork, download_tasks):
+    if not save_artwork:
+        return None
     _, l_url, saved_cover_path = covers.largest()
-    if saved_cover_path is None and save_artwork:
+    if saved_cover_path is None and l_url:
         saved_cover_path = os.path.join(folder, "cover.jpg")
-        assert l_url is not None
-        downloadables.append(
-            BasicDownloadable(session, l_url, "jpg").download(
-                saved_cover_path,
-                lambda _: None,
-            ),
-        )
+        download_tasks.append(_create_download_task(session, l_url, saved_cover_path))
+    return saved_cover_path
 
+
+def _prepare_embed_cover(session, folder, covers, config, embed, download_tasks):
+    if not embed:
+        return None
     _, embed_url, embed_cover_path = covers.get_size(config.embed_size)
-    if embed_cover_path is None and embed:
-        assert embed_url is not None
+    if embed_cover_path is None and embed_url:
         embed_dir = os.path.join(folder, "__artwork")
         os.makedirs(embed_dir, exist_ok=True)
         _artwork_tempdirs.add(embed_dir)
         embed_cover_path = os.path.join(embed_dir, f"cover{hash(embed_url)}.jpg")
-        downloadables.append(
-            BasicDownloadable(session, embed_url, "jpg").download(
-                embed_cover_path,
-                lambda _: None,
-            ),
-        )
+        download_tasks.append(_create_download_task(session, embed_url, embed_cover_path))
+    return embed_cover_path
 
-    if len(downloadables) == 0:
-        return embed_cover_path, saved_cover_path
 
+def _create_download_task(session, url, path):
+    return BasicDownloadable(session, url, "jpg").download(path, lambda _: None)
+
+
+async def _perform_downloads(tasks):
     try:
-        await asyncio.gather(*downloadables)
+        await asyncio.gather(*tasks)
+        return True
     except Exception as e:
         logger.error(f"Error downloading artwork: {e}")
-        return None, None
+        return False
 
-    # Update `covers` to reflect the current download state
-    if save_artwork:
-        assert saved_cover_path is not None
+
+def _update_covers(covers, config, save_artwork, saved_cover_path, embed, embed_cover_path):
+    if save_artwork and saved_cover_path:
         covers.set_largest_path(saved_cover_path)
         if config.saved_max_width > 0:
             downscale_image(saved_cover_path, config.saved_max_width)
-
-    if embed:
-        assert embed_cover_path is not None
+    if embed and embed_cover_path:
         covers.set_path(config.embed_size, embed_cover_path)
         if config.embed_max_width > 0:
             downscale_image(embed_cover_path, config.embed_max_width)
 
-    return embed_cover_path, saved_cover_path
 
 
 def downscale_image(input_image_path: str, max_dimension: int):
