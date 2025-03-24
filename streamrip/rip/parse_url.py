@@ -128,7 +128,7 @@ class QobuzInterpreterURL(URL):
         if match:
             return match.group(1)
 
-        raise Exception(
+        raise ValueError(
             "Unable to extract artist id from interpreter url. Use a "
             "url that contains an artist id.",
         )
@@ -184,7 +184,7 @@ class DeezerDynamicURL(URL):
         if match:
             return match.group(1), match.group(2)
 
-        raise Exception("Unable to extract Deezer dynamic link.")
+        raise ValueError("Unable to extract Deezer dynamic link.")
 
 
 class SoundcloudURL(URL):

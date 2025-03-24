@@ -244,7 +244,7 @@ class SearchResults:
         elif media_type == "playlist":
             summary_type = PlaylistSummary
         else:
-            raise Exception(f"invalid media type {media_type}")
+            raise ValueError(f"invalid media type {media_type}")
 
         results = []
         for page in pages:

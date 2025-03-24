@@ -383,7 +383,7 @@ async def concat_audio_files(paths: list[str], out: str, ext: str, max_files_ope
     Recurses log_{max_file_open}(len(paths)) times.
     """
     if shutil.which("ffmpeg") is None:
-        raise Exception("FFmpeg must be installed.")
+        raise RuntimeError("FFmpeg must be installed.")
 
     # Base case
     if len(paths) == 1:
@@ -431,8 +431,11 @@ async def concat_audio_files(paths: list[str], out: str, ext: str, max_files_ope
     await asyncio.gather(*[p.communicate() for p in processes])
     for proc in processes:
         if proc.returncode != 0:
-            raise Exception(
-                f"FFMPEG returned with status code {proc.returncode} error: {proc.stderr} output: {proc.stdout}",
+            raise subprocess.CalledProcessError(
+                proc.returncode,
+                "ffmpeg",
+                stderr=proc.stderr,
+                output=proc.stdout
             )
 
     # Recurse on remaining batches

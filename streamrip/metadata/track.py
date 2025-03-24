@@ -225,7 +225,7 @@ class TrackMetadata:
             return cls.from_soundcloud(album, resp)
         if source == "deezer":
             return cls.from_deezer(album, resp)
-        raise Exception
+        raise ValueError(f"Unknown source: {source}")
 
     def format_track_path(self, format_string: str) -> str:
         # Available keys: "tracknumber", "artist", "albumartist", "composer", "title",

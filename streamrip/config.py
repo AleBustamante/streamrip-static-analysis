@@ -349,7 +349,7 @@ class ConfigData:
         }
         res = d.get(source)
         if res is None:
-            raise Exception(f"Invalid source {source}")
+            raise ValueError(f"Invalid source {source}")
         return res
 
 
