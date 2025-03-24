@@ -205,7 +205,8 @@ class DeezerDownloadable(Downloadable):
         aes_key = hashlib.sha256(key).digest()
         iv = hashlib.md5(key).digest()
 
-        cipher = AES.new(aes_key, AES.MODE_CBC, iv)
+        # Deezer encrypted files use AES-CBC. Cannot switch to authenticated mode without breaking compatibility.
+        cipher = AES.new(aes_key, AES.MODE_CBC, iv) #NOSONAR
         return cipher.decrypt(data)
 
     @staticmethod
@@ -293,8 +294,9 @@ class TidalDownloadable(Downloadable):
         iv = security_token[:16]
         encrypted_st = security_token[16:]
 
+        # Deezer encrypted files use AES-CBC. Cannot switch to authenticated mode without breaking compatibility.
         # Initialize decryptor
-        decryptor = AES.new(master_key, AES.MODE_CBC, iv)
+        decryptor = AES.new(master_key, AES.MODE_CBC, iv) #NOSONAR
 
         # Decrypt the security token
         decrypted_st = decryptor.decrypt(encrypted_st)

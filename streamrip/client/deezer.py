@@ -218,9 +218,12 @@ class DeezerClient(Client):
         padding_len = 16 - (len(info_bytes) % 16)
         info_bytes.extend(b"." * padding_len)
 
-        path = binascii.hexlify(
-            AES.new(b"jo6aey6haid2Teih", AES.MODE_ECB).encrypt(info_bytes),
-        ).decode("utf-8")
+
+        # Can't change the cipher method nor the padding because its emulating
+        # the way Deezer generates encrypted urls
+        path = binascii.hexlify( #NOSONAR
+            AES.new(b"jo6aey6haid2Teih", AES.MODE_ECB).encrypt(info_bytes), #NOSONAR
+        ).decode("utf-8") #NOSONAR
         url = f"https://e-cdns-proxy-{track_hash[0]}.dzcdn.net/mobile/1/{path}"
         logger.debug("Encrypted file path %s", url)
         return url
