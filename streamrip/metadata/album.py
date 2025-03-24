@@ -506,7 +506,7 @@ class AlbumMetadata:
             if "tracks" not in resp["album"]:
                 return cls.from_incomplete_deezer_track_resp(resp)
             return cls.from_deezer(resp["album"])
-        raise Exception("Invalid source")
+        raise ValueError(f"Invalid source: {source}")
 
     @classmethod
     def from_album_resp(cls, resp: dict, source: str) -> AlbumMetadata | None:
@@ -518,4 +518,4 @@ class AlbumMetadata:
             return cls.from_soundcloud(resp)
         if source == "deezer":
             return cls.from_deezer(resp)
-        raise Exception("Invalid source")
+        raise ValueError(f"Invalid source: {source}")

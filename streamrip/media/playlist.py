@@ -367,7 +367,7 @@ class PendingLastfmPlaylist(Pending):
             page = await fetch(session, playlist_url)
             playlist_title_match = re_playlist_title_match.search(page)
             if playlist_title_match is None:
-                raise Exception("Error finding title from response")
+                raise ValueError("Playlist title not found in the response")
 
             playlist_title: str = html.unescape(playlist_title_match.group(1))
 
@@ -375,7 +375,7 @@ class PendingLastfmPlaylist(Pending):
 
             total_tracks_match = re_total_tracks.search(page)
             if total_tracks_match is None:
-                raise Exception("Error parsing lastfm page: %s", page)
+                raise ValueError("Total tracks count not found in the lastfm page")
             total_tracks = int(total_tracks_match.group(1))
 
             remaining_tracks = total_tracks - 50  # already got 50 from 1st page
@@ -383,7 +383,7 @@ class PendingLastfmPlaylist(Pending):
                 return playlist_title, title_artist_pairs
 
             last_page = (
-                1 + int(remaining_tracks // 50) + int(remaining_tracks % 50 != 0)
+            1 + int(remaining_tracks // 50) + int(remaining_tracks % 50 != 0)
             )
             requests = []
             for page in range(2, last_page + 1):
