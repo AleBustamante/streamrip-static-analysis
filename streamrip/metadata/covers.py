@@ -3,8 +3,8 @@ TIDAL_COVER_URL = "https://resources.tidal.com/images/{uuid}/{width}x{height}.jp
 
 class Covers:
     COVER_SIZES = ("thumbnail", "small", "large", "original")
-    CoverEntry = tuple[str, str | None, str | None]
-    _covers: list[CoverEntry]
+    cover_entry = tuple[str, str | None, str | None]
+    _covers: list[cover_entry]
 
     def __init__(self):
         # ordered from largest to smallest
@@ -49,7 +49,7 @@ class Covers:
         size, url, _ = self._covers[i]
         self._covers[i] = (size, url, path)
 
-    def largest(self) -> CoverEntry:
+    def largest(self) -> cover_entry:
         for s, u, p in self._covers:
             if u is not None:
                 return (s, u, p)
@@ -97,7 +97,7 @@ class Covers:
             c.set_cover_url(size_name, cls._get_tidal_cover_url(uuid, dimension))
         return c
 
-    def get_size(self, size: str) -> CoverEntry:
+    def get_size(self, size: str) -> cover_entry:
         i = self._indexof(size)
         size, url, path = self._covers[i]
         if url is not None:
