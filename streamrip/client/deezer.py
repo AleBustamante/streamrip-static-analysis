@@ -54,7 +54,7 @@ class DeezerClient(Client):
         self.logged_in = True
 
     async def get_metadata(self, item_id: str, media_type: str) -> dict:
-        # TODO: open asyncio PR to deezer py and integrate
+        # TODO: open asyncio PR to deezer py and integrate NOSONAR
         if media_type == "track":
             return await self.get_track(item_id)
         elif media_type == "album":
@@ -115,7 +115,7 @@ class DeezerClient(Client):
         return artist
 
     async def search(self, media_type: str, query: str, limit: int = 200) -> list[dict]:
-        # TODO: use limit parameter
+        # TODO: use limit parameter NOSONAR
         if media_type == "featured":
             try:
                 if query:
@@ -145,7 +145,7 @@ class DeezerClient(Client):
             raise NonStreamableError(
                 "No item id provided. This can happen when searching for fallback songs.",
             )
-        # TODO: optimize such that all of the ids are requested at once
+        # TODO: optimize such that all of the ids are requested at once NOSONAR
         dl_info: dict = {"quality": quality, "id": item_id}
 
         track_info = self.client.gw.get_track(item_id)

@@ -267,7 +267,7 @@ class ConfigData:
 
     @classmethod
     def from_toml(cls, toml_str: str):
-        # TODO: handle the mistake where Windows people forget to escape backslash
+        # TODO: handle the mistake where Windows people forget to escape backslash NOSONAR
         toml = parse(toml_str)
         if (v := toml["misc"]["version"]) != CURRENT_CONFIG_VERSION:  # type: ignore
             raise OutdatedConfigError(

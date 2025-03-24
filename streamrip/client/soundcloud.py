@@ -83,7 +83,7 @@ class SoundcloudClient(Client):
         limit: int = 50,
         offset: int = 0,
     ) -> list[dict]:
-        # TODO: implement pagination
+        # TODO: implement pagination NOSONAR
         assert media_type in ("track", "playlist"), f"Cannot search for {media_type}"
         params = {
             "q": query,

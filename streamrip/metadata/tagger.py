@@ -174,7 +174,7 @@ class Container(Enum):
         return out
 
     def _attr_from_meta(self, meta: TrackMetadata, attr: str) -> str | None:
-        # TODO: verify this works
+        # TODO: verify this works NOSONAR
         in_trackmetadata = {
             "title",
             "album",

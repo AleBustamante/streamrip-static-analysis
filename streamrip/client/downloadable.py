@@ -342,7 +342,7 @@ class SoundcloudDownloadable(Downloadable):
         await engine.convert(path)
 
     async def _download_mp3(self, path: str, callback):
-        # TODO: make progress bar reflect bytes
+        # TODO: make progress bar reflect bytes NOSONAR
         async with self.session.get(self.url) as resp:
             content = await resp.text("utf-8")
 

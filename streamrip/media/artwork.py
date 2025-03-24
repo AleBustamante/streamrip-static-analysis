@@ -42,8 +42,7 @@ async def download_artwork(
     saved_cover_path = _prepare_saved_cover(session, folder, covers, save_artwork, download_tasks)
     embed_cover_path = _prepare_embed_cover(session, folder, covers, config, embed, download_tasks)
 
-    if download_tasks:
-        if not await _perform_downloads(download_tasks):
+    if download_tasks and not await _perform_downloads(download_tasks):
             return None, None
 
     _update_covers(covers, config, save_artwork, saved_cover_path, embed, embed_cover_path)

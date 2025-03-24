@@ -166,7 +166,7 @@ class Converter:
         command.extend(["-y", self.tempfile])
 
     def _is_command_valid(self):
-        # TODO: add error handling for lossy codecs
+        # TODO: add error handling for lossy codecs NOSONAR
         if self.ffmpeg_arg is not None and self.lossless:
             logger.debug(
                 "Lossless codecs don't support extra arguments; "

@@ -48,6 +48,7 @@ class Dummy(DatabaseInterface):
         pass
 
     def remove(self, *_):
+        """This exists as a mock to use in case databases are disabled."""
         pass
 
     def all(self):

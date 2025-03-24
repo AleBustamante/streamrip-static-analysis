@@ -263,31 +263,30 @@ class QobuzClient(Client):
         status, label_resp = await self._api_request(epoint, params)
         assert status == 200
         albums_count = label_resp["albums_count"]
-
-        if albums_count <= page_limit:
-            return label_resp
-
-        requests = [
-            self._api_request(
-                epoint,
-                {
-                    "app_id": str(c.app_id),
-                    "label_id": label_id,
-                    "limit": page_limit,
-                    "offset": offset,
-                    "extra": "albums",
-                },
-            )
-            for offset in range(page_limit, albums_count, page_limit)
-        ]
-
-        results = await asyncio.gather(*requests)
-        items = label_resp["albums"]["items"]
-        for status, resp in results:
-            assert status == 200
-            items.extend(resp["albums"]["items"])
-
+ 
+        if albums_count > page_limit:
+            requests = [
+                self._api_request(
+                    epoint,
+                    {
+                        "app_id": str(c.app_id),
+                        "label_id": label_id,
+                        "limit": page_limit,
+                        "offset": offset,
+                        "extra": "albums",
+                    },
+                )
+                for offset in range(page_limit, albums_count, page_limit)
+            ]
+ 
+            results = await asyncio.gather(*requests)
+            items = label_resp["albums"]["items"]
+            for status, resp in results:
+                assert status == 200
+                items.extend(resp["albums"]["items"])
+ 
         return label_resp
+
 
     async def search(self, media_type: str, query: str, limit: int = 500) -> list[dict]:
         if media_type not in ("artist", "album", "track", "playlist"):
