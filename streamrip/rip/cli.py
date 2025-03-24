@@ -295,12 +295,11 @@ def config_open(ctx, vim):
 def config_reset(ctx, yes):
     """Reset the config file."""
     config_path = ctx.obj["config_path"]
-    if not yes:
-        if not Confirm.ask(
+    if not yes and not Confirm.ask(
             f"Are you sure you want to reset the config file at {config_path}?",
         ):
-            console.print("[green]Reset aborted")
-            return
+        console.print("[green]Reset aborted")
+        return
 
     set_user_defaults(config_path)
     console.print(f"Reset the config file at [bold cyan]{config_path}!")

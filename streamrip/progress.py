@@ -86,8 +86,6 @@ class Handle:
     def __exit__(self, *_):
         self.done()
 
-
-# global instance
 _p = ProgressManager()
 
 

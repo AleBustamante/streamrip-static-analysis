@@ -53,7 +53,6 @@ def get_aiohttp_connector_kwargs(verify_ssl=True):
     """
     if not verify_ssl:
         logger.warning("SSL verification is not allowed to be disabled")
-        #return {"verify_ssl": False}
 
     if HAS_CERTIFI:
         ssl_context = create_ssl_context(verify=True)
