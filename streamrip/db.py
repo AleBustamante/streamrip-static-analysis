@@ -36,12 +36,15 @@ class Dummy(DatabaseInterface):
     """This exists as a mock to use in case databases are disabled."""
 
     def create(self):
+        """This exists as a mock to use in case databases are disabled."""
         pass
 
     def contains(self, **_):
+        """This exists as a mock to use in case databases are disabled."""
         return False
 
     def add(self, *_):
+        """This exists as a mock to use in case databases are disabled."""
         pass
 
     def remove(self, *_):
