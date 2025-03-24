@@ -70,67 +70,58 @@ class TidalClient(Client):
         self.logged_in = True
 
     async def get_metadata(self, item_id: str, media_type: str) -> dict:
-        """Send a request to the api for information.
-
-        :param item_id:
-        :type item_id: str
-        :param media_type: track, album, playlist, or video.
-        :type media_type: str
-        :rtype: dict
-        """
-        assert media_type in (
-            "track",
-            "album",
-            "playlist",
-            "video",
-            "artist",
-        ), media_type
+        """Send a request to the api for information."""
+        assert media_type in ("track", "album", "playlist", "video", "artist"), media_type
 
         url = f"{media_type}s/{item_id}"
         item = await self._api_request(url)
+
         if media_type in ("playlist", "album"):
-            # TODO: move into new method and make concurrent
-            resp = await self._api_request(f"{url}/items")
-            tracks_left = item["numberOfTracks"]
-            if tracks_left > 100:
-                offset = 0
-                while tracks_left > 0:
-                    offset += 100
-                    tracks_left -= 100
-                    items_resp = await self._api_request(
-                        f"{url}/items", {"offset": offset}
-                    )
-                    resp["items"].extend(items_resp["items"])
-
-            item["tracks"] = [item["item"] for item in resp["items"]]
+            await self._populate_tracks(item, url)
         elif media_type == "artist":
-            logger.debug("filtering eps")
-            album_resp, ep_resp = await asyncio.gather(
-                self._api_request(f"{url}/albums"),
-                self._api_request(f"{url}/albums", params={"filter": "EPSANDSINGLES"}),
-            )
-
-            item["albums"] = album_resp["items"]
-            item["albums"].extend(ep_resp["items"])
+            await self._populate_artist_albums(item, url)
         elif media_type == "track":
-            try:
-                resp = await self._api_request(
-                    f"tracks/{item_id!s}/lyrics", base="https://listen.tidal.com/v1"
-                )
-
-                # Use unsynced lyrics for MP3, synced for others (FLAC, OPUS, etc)
-                if (
-                    self.global_config.session.conversion.enabled
-                    and self.global_config.session.conversion.codec.upper() == "MP3"
-                ):
-                    item["lyrics"] = resp.get("lyrics") or ""
-                else:
-                    item["lyrics"] = resp.get("subtitles") or resp.get("lyrics") or ""
-            except TypeError as e:
-                logger.warning(f"Failed to get lyrics for {item_id}: {e}")
+            await self._populate_lyrics(item, item_id)
 
         logger.debug(item)
         return item
+
+    async def _populate_tracks(self, item: dict, url: str):
+        resp = await self._api_request(f"{url}/items")
+        tracks_left = item["numberOfTracks"]
+        item["tracks"] = []
+ 
+        item["tracks"].extend([t["item"] for t in resp["items"]])
+        if tracks_left > 100:
+            offset = 100
+            while tracks_left > 100:
+                tracks_left -= 100
+                items_resp = await self._api_request(f"{url}/items", {"offset": offset})
+                item["tracks"].extend([t["item"] for t in items_resp["items"]])
+                offset += 100
+
+    async def _populate_artist_albums(self, item: dict, url: str):
+        album_resp, ep_resp = await asyncio.gather(
+            self._api_request(f"{url}/albums"),
+            self._api_request(f"{url}/albums", params={"filter": "EPSANDSINGLES"}),
+        )
+        item["albums"] = album_resp["items"] + ep_resp["items"]
+
+    async def _populate_lyrics(self, item: dict, item_id: str):
+        try:
+            resp = await self._api_request(
+                f"tracks/{item_id}/lyrics", base="https://listen.tidal.com/v1"
+            )
+            codec = self.global_config.session.conversion.codec.upper()
+            use_unsynced = self.global_config.session.conversion.enabled and codec == "MP3"
+ 
+            if use_unsynced:
+                item["lyrics"] = resp.get("lyrics") or ""
+            else:
+                item["lyrics"] = resp.get("subtitles") or resp.get("lyrics") or ""
+        except TypeError as e:
+            logger.warning(f"Failed to get lyrics for {item_id}: {e}")
+
 
     async def search(self, media_type: str, query: str, limit: int = 100) -> list[dict]:
         """Search for a query.

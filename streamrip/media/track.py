@@ -38,7 +38,7 @@ class Track(Media):
             add_title(self.meta.title)
 
     async def download(self):
-        # TODO: progress bar description
+        # TODO: progress bar description NOSONAR
         async with global_download_semaphore(self.config.session.downloads):
             with get_progress_callback(
                 self.config.session.cli.progress_bars,

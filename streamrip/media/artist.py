@@ -30,6 +30,9 @@ class Artist(Media):
     config: Config
 
     async def preprocess(self):
+        """Optional hook that executes before downloading an album
+        It can be overwritten or extended in the future for tasks like
+        verify disk space, apply preliminar filters, use temporal resources"""
         pass
 
     async def download(self):
@@ -43,6 +46,9 @@ class Artist(Media):
             await self._download_async(filter_conf)
 
     async def postprocess(self):
+        """Optional hook that executes after downloading an album
+        It can be overwritten or extended in the future for tasks like
+        cleaning tasks, liberating resources, moving files to a final destination"""
         pass
 
     async def _resolve_then_download(self, filters: QobuzDiscographyFilterConfig):

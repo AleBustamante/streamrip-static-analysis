@@ -24,6 +24,9 @@ class Label(Media):
     config: Config
 
     async def preprocess(self):
+        """Optional hook that executes before downloading an album
+        It can be overwritten or extended in the future for tasks like
+        verify disk space, apply preliminar filters, use temporal resources"""
         pass
 
     async def download(self):
@@ -46,6 +49,9 @@ class Label(Media):
             await asyncio.gather(*batch)
 
     async def postprocess(self):
+        """Optional hook that executes after downloading an album
+        It can be overwritten or extended in the future for tasks like
+        cleaning tasks, liberating resources, moving files to a final destination"""
         pass
 
     @staticmethod

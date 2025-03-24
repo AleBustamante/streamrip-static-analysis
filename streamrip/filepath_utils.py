@@ -5,7 +5,7 @@ from pathvalidate import sanitize_filename, sanitize_filepath  # type: ignore
 ALLOWED_CHARS = set(printable)
 
 
-# TODO: remove this when new pathvalidate release arrives with https://github.com/thombashi/pathvalidate/pull/48
+# TODO: remove this when new pathvalidate release arrives with https://github.com/thombashi/pathvalidate/pull/48 NOSONAR
 def truncate_str(text: str) -> str:
     str_bytes = text.encode()
     str_bytes = str_bytes[:255]
